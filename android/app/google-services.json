@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "44886992542",
+    "project_id": "kamyafashion-291a5",
+    "storage_bucket": "kamyafashion-291a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44886992542:android:175205b7a8a4962e637d8f",
+        "android_client_info": {
+          "package_name": "com.example.kamyafashion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "44886992542-2egocuq70ec36173on0jldh387qau3i6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kamyafashion",
+            "certificate_hash": "6c40b9d8f0ad0e74ba81d034b718ba1536020c27"
+          }
+        },
+        {
+          "client_id": "44886992542-jkm5ft4k959jk8omegv2deibi195u9hj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbqhypII93aqKZJOHnT9tcrWwWUevOQAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "44886992542-jkm5ft4k959jk8omegv2deibi195u9hj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44886992542:android:d34524b532f2b352637d8f",
+        "android_client_info": {
+          "package_name": "com.example.kamyafashionadmin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "44886992542-jkm5ft4k959jk8omegv2deibi195u9hj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbqhypII93aqKZJOHnT9tcrWwWUevOQAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "44886992542-jkm5ft4k959jk8omegv2deibi195u9hj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
