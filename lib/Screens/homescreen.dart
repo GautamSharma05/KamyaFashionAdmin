@@ -4,7 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path/path.dart' as Path;
 import 'package:image_picker/image_picker.dart';
 import 'package:textfield_tags/textfield_tags.dart';
@@ -22,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String gender = 'Men';
   List listItem = ['Men', 'Women', 'Kids'];
   List sizeList = [];
+  List colorList = [];
   final List<File> _image = [];
   final picker = ImagePicker();
 
@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _image.add(File(pickedFile!.path));
     });
+    // ignore: unnecessary_null_comparison
     if (pickedFile!.path == null) retrieveLostData();
   }
 
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _image.add(File(response.file!.path));
       });
     } else {
+      // ignore: avoid_print
       print(response.file);
     }
   }
@@ -63,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _productName = TextEditingController();
   final TextEditingController _productSellingPrice = TextEditingController();
   final TextEditingController _productDescription = TextEditingController();
+  final TextEditingController _productId = TextEditingController();
+  final TextEditingController _productInStock = TextEditingController();
   final TextEditingController _productCategory = TextEditingController();
   final TextEditingController _productSubCategory = TextEditingController();
 
@@ -75,28 +79,39 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('subtype')
         .doc(_productCategory.text)
         .collection(_productSubCategory.text)
-        .add({
+        .doc(_productId.text)
+        .set({
+          'ProductId': _productId.text,
           'ProductCategory': _productSubCategory.text,
           'ProductName': _productName.text,
           'ProductSellingPrice': _productSellingPrice.text,
           'ProductDescription': _productDescription.text,
+          'ProductInStock': _productInStock.text,
           'ProductSize': sizeList,
+          'ProductColors': colorList,
           'ProductPicUrl': urls,
         })
-        .then((value) => showDialog(
+        .then(
+          (value) => showDialog(
             barrierDismissible: false,
             context: context,
-            builder: (ctx) =>  AlertDialog(
-                  title: const Text("Notify You"),
-                  content: const Text("You have Successfully upload your product in Kamya Fashion"),
-                  actions: [
-                   ElevatedButton(onPressed: (){
-                     Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-                   }, child: const Text('Okay'))
-                  ],
-                ),
-    ),
-    )
+            builder: (ctx) => AlertDialog(
+              title: const Text("Notify You"),
+              content: const Text(
+                  "You have Successfully upload your product in Kamya Fashion"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HomeScreen()));
+                    },
+                    child: const Text('Okay'))
+              ],
+            ),
+          ),
+        )
         .catchError((error) => log("Failed to add user: $error"));
   }
 
@@ -144,19 +159,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 45,
                   child: ElevatedButton(
                       onPressed: () {
-                        uploadFile().whenComplete(() => showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (ctx) =>  AlertDialog(
-                            title: const Text("Notify You"),
-                            content: const Text("You have Successfully upload your Product Image in Kamya Fashion"),
-                            actions: [
-                              ElevatedButton(onPressed: (){
-                                Navigator.of(ctx).pop();
-                              }, child: const Text('Okay'))
-                            ],
+                        uploadFile().whenComplete(
+                          () => showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text("Notify You"),
+                              content: const Text(
+                                  "You have Successfully upload your Product Image in Kamya Fashion"),
+                              actions: [
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    child: const Text('Okay'))
+                              ],
+                            ),
                           ),
-                        ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -206,6 +225,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 20,
                 ),
                 TextFormField(
+                  controller: _productId,
+                  decoration: const InputDecoration(
+                    hintText: "Enter Product Id",
+                    labelText: "Product Id",
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
                   controller: _productName,
                   decoration: const InputDecoration(
                     hintText: "Enter Product Name",
@@ -244,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onDelete: (String tag) {
                     sizeList.remove(tag);
                   },
-                  textFieldStyler: TextFieldStyler(),
+                  textFieldStyler: TextFieldStyler(hintText: 'Enter Size'),
                   tagsStyler: TagsStyler(
                       tagTextStyle:
                           const TextStyle(fontWeight: FontWeight.bold),
@@ -255,6 +284,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       tagCancelIcon: Icon(Icons.cancel,
                           size: 18.0, color: Colors.blue[900]),
                       tagPadding: const EdgeInsets.all(6.0)),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFieldTags(
+                  onTag: (String tag) {
+                    colorList.add(tag);
+                  },
+                  onDelete: (String tag) {
+                    colorList.remove(tag);
+                  },
+                  textFieldStyler:
+                      TextFieldStyler(hintText: 'Enter Available Colors'),
+                  tagsStyler: TagsStyler(
+                      tagTextStyle:
+                          const TextStyle(fontWeight: FontWeight.bold),
+                      tagDecoration: BoxDecoration(
+                        color: Colors.blue[300],
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      tagCancelIcon: Icon(Icons.cancel,
+                          size: 18.0, color: Colors.blue[900]),
+                      tagPadding: const EdgeInsets.all(6.0)),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  controller: _productInStock,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    hintText: "Enter Product Stock Detail",
+                    labelText: "Product In Stock",
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
