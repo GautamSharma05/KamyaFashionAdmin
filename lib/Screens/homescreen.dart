@@ -1,8 +1,12 @@
-
-
+import 'dart:developer';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path/path.dart' as Path;
+import 'package:image_picker/image_picker.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,9 +17,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  FirebaseStorage storage = FirebaseStorage.instance;
+  List<String> urls = [];
   String gender = 'Men';
-  List listItem = ['Men','Women','Kids'];
+  List listItem = ['Men', 'Women', 'Kids'];
   List sizeList = [];
+  final List<File> _image = [];
+  final picker = ImagePicker();
+
+  chooseImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image.add(File(pickedFile!.path));
+    });
+    if (pickedFile!.path == null) retrieveLostData();
+  }
+
+  Future<void> retrieveLostData() async {
+    final LostDataResponse response = await picker.retrieveLostData();
+    if (response.isEmpty) {
+      return;
+    }
+    if (response.file != null) {
+      setState(() {
+        _image.add(File(response.file!.path));
+      });
+    } else {
+      print(response.file);
+    }
+  }
+
+  Future uploadFile() async {
+    for (var img in _image) {
+      Reference ref =
+          storage.ref().child('ProductPhoto/${Path.basename(img.path)}');
+      await ref.putFile(img).whenComplete(() async {
+        await ref.getDownloadURL().then((value) {
+          urls.add(value);
+        });
+      });
+    }
+  }
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _productName = TextEditingController();
@@ -39,9 +81,23 @@ class _HomeScreenState extends State<HomeScreen> {
           'ProductSellingPrice': _productSellingPrice.text,
           'ProductDescription': _productDescription.text,
           'ProductSize': sizeList,
+          'ProductPicUrl': urls,
         })
-        .then((value) => print('Successfully added'))
-        .catchError((error) => print("Failed to add user: $error"));
+        .then((value) => showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (ctx) =>  AlertDialog(
+                  title: const Text("Notify You"),
+                  content: const Text("You have Successfully upload your product in Kamya Fashion"),
+                  actions: [
+                   ElevatedButton(onPressed: (){
+                     Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+                   }, child: const Text('Okay'))
+                  ],
+                ),
+    ),
+    )
+        .catchError((error) => log("Failed to add user: $error"));
   }
 
   @override
@@ -59,6 +115,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
             child: Column(
               children: [
+                GridView.builder(
+                    itemCount: _image.length + 1,
+                    shrinkWrap: true,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3),
+                    itemBuilder: (context, index) {
+                      return index == 0
+                          ? Center(
+                              child: IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => chooseImage()),
+                            )
+                          : Container(
+                              margin: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: FileImage(_image[index - 1]),
+                                      fit: BoxFit.cover)),
+                            );
+                    }),
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        uploadFile().whenComplete(() => showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (ctx) =>  AlertDialog(
+                            title: const Text("Notify You"),
+                            content: const Text("You have Successfully upload your Product Image in Kamya Fashion"),
+                            actions: [
+                              ElevatedButton(onPressed: (){
+                                Navigator.of(ctx).pop();
+                              }, child: const Text('Okay'))
+                            ],
+                          ),
+                        ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: const Color(0xFFf16c83),
+                      ),
+                      child: const Text('Upload Image')),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
                 DropdownButton(
                     hint: const Text('Select Man,Women and Kids'),
                     icon: const Icon(Icons.arrow_drop_down),
@@ -90,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextFormField(
                   controller: _productSubCategory,
                   decoration: const InputDecoration(
-                    hintText: "Ex- TshirtProduct ,if Tshirt then Tsirt Product",
+                    hintText: "Ex- TshirtProduct ,if Tshirt then TshirtProduct",
                     labelText: "Product Sub Category",
                   ),
                 ),
@@ -148,10 +256,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 18.0, color: Colors.blue[900]),
                       tagPadding: const EdgeInsets.all(6.0)),
                 ),
-                ElevatedButton(
-                    onPressed: () {
-                      addProduct();
-                    }, child: const Text('Add Product'))
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        addProduct();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: const Color(0xFFf16c83),
+                      ),
+                      child: const Text('Add Product')),
+                ),
               ],
             ),
           ),
